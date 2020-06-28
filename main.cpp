@@ -11,7 +11,7 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-#define DEBUG
+//#define DEBUG
 // SetView
 
 BEGIN_MESSAGE_MAP(SetView, CWinApp)
