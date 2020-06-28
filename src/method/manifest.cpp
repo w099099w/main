@@ -90,12 +90,12 @@ string Manifest::getSavePath()
 	return m_savePath;
 }
 
-map<string, string> Manifest::getInfoFromConfig(string configName)
+map<string, string> Manifest::getInfoFromConfig(string configName,string configPath)
 {
 	map<string, string> temp;
 	int size = sizeof(m_saveitem) / sizeof(string);
 	for (int i = 0; i < size; ++i) {
-		temp.insert(make_pair(m_saveitem[i], ReadINIStr(configName, m_saveitem[i], "./config/config.ini")));
+		temp.insert(make_pair(m_saveitem[i], ReadINIStr(configName, m_saveitem[i], configPath)));
 	}
 	return temp;
 }
@@ -223,9 +223,8 @@ void Manifest::DeleteDirectory(CString strPath)
 	tempFind.Close();
 }
 
-void Manifest::deleteConfig(string configName)
+void Manifest::deleteConfig(string configName,string path)
 {
-	string path = "./config/config.ini";
 	WritePrivateProfileStringA(configName.c_str(), NULL, NULL, path.c_str());
 }
 

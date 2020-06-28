@@ -8,12 +8,59 @@
 #endif
 // SettingView 对话框
 
-SettingView* mainView;//全局变量
+CString GetLocalAppdataPath()
+{
+	wchar_t m_lpszDefaultDir[MAX_PATH] = { 0 };
+	wchar_t szDocument[MAX_PATH] = { 0 };
 
+	LPITEMIDLIST pidl = NULL;
+	SHGetSpecialFolderLocation(NULL, CSIDL_LOCAL_APPDATA, &pidl);
+	if (pidl && SHGetPathFromIDList(pidl, szDocument))
+	{
+		GetShortPathName(szDocument, m_lpszDefaultDir, _MAX_PATH);
+	}
+	return m_lpszDefaultDir;
+}
+string CStringToString(CString in) {
+	string out = CT2A(in.GetBuffer());
+	return out;
+}
+bool CreateMultipleDirectory(CString szDirectory)
+{
+	if (szDirectory == "")
+	{
+		return false;
+	}
+	if (PathFileExists(szDirectory))
+	{
+		return true;
+	}
+	if (szDirectory.Right(1) != '\\')
+	{
+		szDirectory = szDirectory + '\\';
+	}
+	CString szTemp = "";
+	for (int i = 0; i < szDirectory.GetLength(); i++)
+	{
+		szTemp = szTemp + szDirectory.GetAt(i);
+		if (szDirectory.GetAt(i) == '\\' || szDirectory.GetAt(i) == '/')
+		{
+			if (!PathFileExists(szTemp))
+			{
+				CreateDirectory(szTemp, NULL);
+			}
+		}
+	}
+	return true;
+
+}
+
+SettingView* mainView;//全局变量
 SettingView::SettingView(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_MAIN_DIALOG, pParent),
 	m_config("")
 {
+	cachePath = GetLocalAppdataPath()+"/main";
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	mainView = this;
 
@@ -34,8 +81,6 @@ BEGIN_MESSAGE_MAP(SettingView, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_CBN_SELCHANGE(LIST_CONFIGLIST, &SettingView::OnCbnSelchangeConfiglist)
 END_MESSAGE_MAP()
-
-
 // SettingView 消息处理程序
 
 BOOL SettingView::OnInitDialog()
@@ -67,14 +112,14 @@ BOOL SettingView::OnInitDialog()
 
 	// TODO: 在此添加额外的初始化代码
 	m_hwnd = GetSafeHwnd();
-	if (!PathIsDirectory(L"./config")) {
-		CreateDirectory(L"./config", NULL);
+	if (!PathIsDirectory(cachePath +"/config")) {
+		CreateMultipleDirectory(cachePath +"/config");
 	}
-	ifstream in(L"./config/config.ini");
+	ifstream in(cachePath +"/config/config.ini");
 	if (!in.good()) {
 		cout << "创建文件\n";
 		ofstream out;
-		out.open(L"./config/config.ini",ios::binary);
+		out.open(cachePath + "/config/config.ini",ios::binary);
 		in.close();
 		out.close();
 	}//创建配置文件
@@ -154,14 +199,15 @@ BOOL SettingView::OnCommand(WPARAM wParam, LPARAM lParam)
 			}break;
 			case SINGLE_USECONFIG: {
 				if (m_useConfig.GetCheck() == 1) {
-					getAllSection("./config/config.ini", m_cList);
-					SetList();
+					getAllSection(CStringToString(cachePath)+ "/config/config.ini", m_cList);
+					
 				}
+				SetList();
 			}break;
 			case BUTTON_DELETECONFIG: {
-				theApp.m_manifest->deleteConfig(m_config);
+				theApp.m_manifest->deleteConfig(m_config, CStringToString(cachePath) + "/config/config.ini");
 				reset();
-				getAllSection("./config/config.ini", m_cList);
+				getAllSection(CStringToString(cachePath) + "/config/config.ini", m_cList);
 				SetList();
 				setButtonStaue(BUTTON_SAVECONFIG, FALSE);
 				setButtonStaue(BUTTON_DELETECONFIG, FALSE);
@@ -180,7 +226,7 @@ BOOL SettingView::OnCommand(WPARAM wParam, LPARAM lParam)
 					}break;
 					case 1: {
 							saveConfig(CinConfigName::m_cinstr);
-							getAllSection("./config/config.ini", m_cList);
+							getAllSection(CStringToString(cachePath) + "/config/config.ini", m_cList);
 							SetList();
 							LPCTSTR result = StoWs(CinConfigName::m_cinstr).c_str();
 							int nIndex = m_configList.FindStringExact(0, result);
@@ -203,13 +249,13 @@ BOOL SettingView::OnCommand(WPARAM wParam, LPARAM lParam)
 	return CDialogEx::OnCommand(wParam, lParam);
 }
 bool SettingView::saveConfig(string appName) {
-		WriteINIString(theApp.m_manifest->getdataPath(), appName, "datapath", "./config/config.ini");
-		WriteINIString(theApp.m_manifest->getSavePath(), appName, "savepath", "./config/config.ini");
-		WriteINIString(theApp.m_manifest->getversion(), appName, "version", "./config/config.ini");
-		WriteINIString(theApp.m_manifest->getLineVersion(), appName, "inlingversion", "./config/config.ini");
-		WriteINIString(theApp.m_manifest->getRemotePath(), appName, "remotepath", "./config/config.ini");
-		WriteINIString(m_copy.GetCheck() == 1 ? "1":"0" , appName, "usecopy", "./config/config.ini");
-		WriteINIString(m_formatFloder.GetCheck() == 1 ? "1" : "0", appName, "useformat", "./config/config.ini");
+		WriteINIString(theApp.m_manifest->getdataPath(), appName, "datapath", CStringToString(cachePath) + "/config/config.ini");
+		WriteINIString(theApp.m_manifest->getSavePath(), appName, "savepath", CStringToString(cachePath) + "/config/config.ini");
+		WriteINIString(theApp.m_manifest->getversion(), appName, "version", CStringToString(cachePath) + "/config/config.ini");
+		WriteINIString(theApp.m_manifest->getLineVersion(), appName, "inlingversion", CStringToString(cachePath) + "/config/config.ini");
+		WriteINIString(theApp.m_manifest->getRemotePath(), appName, "remotepath", CStringToString(cachePath) + "/config/config.ini");
+		WriteINIString(m_copy.GetCheck() == 1 ? "1":"0" , appName, "usecopy", CStringToString(cachePath) + "/config/config.ini");
+		WriteINIString(m_formatFloder.GetCheck() == 1 ? "1" : "0", appName, "useformat", CStringToString(cachePath) + "/config/config.ini");
 		return true;
 }
 void SettingView::setButtonStaue(int buttonID, bool isclick)
@@ -246,7 +292,7 @@ void SettingView::OnCbnSelchangeConfiglist()
 	setButtonStaue(BUTTON_SAVECONFIG, TRUE); 
 	setButtonStaue(BUTTON_DELETECONFIG, TRUE);
 	m_config = useConfig;
-	setConfigshow(theApp.m_manifest->getInfoFromConfig(useConfig));
+	setConfigshow(theApp.m_manifest->getInfoFromConfig(useConfig, CStringToString(cachePath) + "/config/config.ini"));
 	// TODO: 在此添加控件通知处理程序代码
 }
 bool SettingView::setConfigshow(map<string, string> info) {

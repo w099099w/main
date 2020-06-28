@@ -13,10 +13,10 @@ public:
 	enum { IDD = IDD_MAIN_DIALOG };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
-
-
+private:
+		CString cachePath;
 // 实现
 protected:
 	HICON m_hIcon;

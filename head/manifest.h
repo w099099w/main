@@ -38,13 +38,13 @@ public:
 	bool writeFiles(string fileName,string info);
 	void showChooseFloder(HWND hwndDlg, int EDITCODE);
 	void DeleteDirectory(CString strPath);
-	void deleteConfig(string configName);
+	void deleteConfig(string configName, string path);
 	string getversion();
 	string getLineVersion();
 	string getRemotePath();
 	string getdataPath();
 	string getSavePath();
-	map<string, string> getInfoFromConfig(string configName);
+	map<string, string> getInfoFromConfig(string configName,string configPath);
 	string getversionFromConfig(string configName);
 	string getLineVersionFromConfig(string configName);
 	string getRemotePathFromConfig(string configName);
