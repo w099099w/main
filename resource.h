@@ -31,6 +31,7 @@
 #define SINGLE_FORMATFLODER             502
 #define SINGLE_COPEFILE                 503
 #define SINGLE_USECONFIG                504
+#define SINGLE_CREATEZIP                505
 #define LIST_CONFIGLIST                 601
 #define IDC_BUTTON1                     1027
 #define IDP_ALLPERCENT                  1028

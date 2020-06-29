@@ -36,6 +36,7 @@ public:
 	CButton m_formatFloder;
 	CButton m_copy;
 	CButton m_useConfig;
+	CButton m_createZip;
 	afx_msg void OnCbnSelchangeConfiglist();
 	bool setConfigshow(map<string, string> info);
 	void reset();

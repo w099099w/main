@@ -6,8 +6,6 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-// SettingView 对话框
-
 CString GetLocalAppdataPath()
 {
 	wchar_t m_lpszDefaultDir[MAX_PATH] = { 0 };
@@ -55,6 +53,8 @@ bool CreateMultipleDirectory(CString szDirectory)
 
 }
 
+// SettingView 对话框
+//类方法
 SettingView* mainView;//全局变量
 SettingView::SettingView(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_MAIN_DIALOG, pParent),
@@ -63,7 +63,6 @@ SettingView::SettingView(CWnd* pParent /*=nullptr*/)
 	cachePath = GetLocalAppdataPath()+"/main";
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	mainView = this;
-
 }
 
 void SettingView::DoDataExchange(CDataExchange* pDX)
@@ -73,6 +72,7 @@ void SettingView::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, SINGLE_COPEFILE, m_copy);
 	DDX_Control(pDX, SINGLE_USECONFIG, m_useConfig);
 	DDX_Control(pDX, LIST_CONFIGLIST, m_configList);
+	DDX_Control(pDX, SINGLE_CREATEZIP, m_createZip);
 }
 
 BEGIN_MESSAGE_MAP(SettingView, CDialogEx)
@@ -200,7 +200,6 @@ BOOL SettingView::OnCommand(WPARAM wParam, LPARAM lParam)
 			case SINGLE_USECONFIG: {
 				if (m_useConfig.GetCheck() == 1) {
 					getAllSection(CStringToString(cachePath)+ "/config/config.ini", m_cList);
-					
 				}
 				SetList();
 			}break;
@@ -256,6 +255,7 @@ bool SettingView::saveConfig(string appName) {
 		WriteINIString(theApp.m_manifest->getRemotePath(), appName, "remotepath", CStringToString(cachePath) + "/config/config.ini");
 		WriteINIString(m_copy.GetCheck() == 1 ? "1":"0" , appName, "usecopy", CStringToString(cachePath) + "/config/config.ini");
 		WriteINIString(m_formatFloder.GetCheck() == 1 ? "1" : "0", appName, "useformat", CStringToString(cachePath) + "/config/config.ini");
+		WriteINIString(m_createZip.GetCheck() == 1 ? "1" : "0", appName, "createzip", CStringToString(cachePath) + "/config/config.ini");
 		return true;
 }
 void SettingView::setButtonStaue(int buttonID, bool isclick)
@@ -296,7 +296,6 @@ void SettingView::OnCbnSelchangeConfiglist()
 	// TODO: 在此添加控件通知处理程序代码
 }
 bool SettingView::setConfigshow(map<string, string> info) {
-	std::cout << "触发\n";
 	if (info.size() == 0) {
 		setButtonStaue(BUTTON_SAVECONFIG, FALSE);
 		setButtonStaue(BUTTON_DELETECONFIG, FALSE);
@@ -334,6 +333,9 @@ bool SettingView::setConfigshow(map<string, string> info) {
 		else if (key == "usecopy") {
 			m_copy.SetCheck(atoi(value.data()));
 		}
+		else if (key == "createzip") {
+			m_createZip.SetCheck(atoi(value.data()));
+		}
 	}
 	return true;
 }
@@ -345,6 +347,7 @@ void SettingView::reset() {
 	theApp.m_manifest->setRemotePath("");
 	m_formatFloder.SetCheck(0);
 	m_copy.SetCheck(0);
+	m_createZip.SetCheck(0);
 	SetDlgItemTextA(m_hwnd, EDIT_FINDPATH, "");
 	SetDlgItemTextA(m_hwnd, EDIT_SAVEPATH, "");
 	SetDlgItemTextA(m_hwnd, EDIT_VERSION, "");

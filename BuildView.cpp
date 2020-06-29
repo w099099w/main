@@ -64,19 +64,7 @@ void BuildView::setTitle(string title)
 {
 	SetWindowText(StoWs(title).c_str());
 }
-/*
-bool BuildView::addString(string s)
-{
-	m_Edit.SetLimitText(UINT_MAX);//设置显示最大字符数
-	int len = m_Edit.GetWindowTextLength();
-	m_Edit.SetSel(len, len);//将插入光标放在最后
-	std::wstring stemp = StoWs(s);
-	LPCWSTR result = stemp.c_str();
-	m_Edit.ReplaceSel(result);
-	UpdateWindow();
-	return true;
-}
-*/
+
 bool BuildView::addString(string s) {
 	return true;
 }
@@ -139,6 +127,9 @@ void BuildView::OnTimer(UINT_PTR nIDEvent)
 		if (mainView->m_copy.GetCheck() == 1) {
 			allcount += 1;
 		}
+		if (mainView->m_createZip.GetCheck() == 1) {
+			allcount += 1;
+		}
 		setPercentLabel(curcount, allcount);
 		SetTimer(TIMER_SUB,1000,NULL);
 	}break;
@@ -163,7 +154,7 @@ void BuildView::OnTimer(UINT_PTR nIDEvent)
 		curProgressCtrl.SetPos(0);
 		KillTimer(TIMER_RUN);
 		setTitle("执行用户配置->格式化保存文件夹...");
-		//格式化配置
+		//格式化
 		if (mainView->m_formatFloder.GetCheck() == 1) {
 			setCurLabel("正在删除" + theApp.m_manifest->getSavePath() + "下的所有文件...");
 			setAllLabel("正在删除" + theApp.m_manifest->getSavePath() + "下的所有文件...");
@@ -174,7 +165,7 @@ void BuildView::OnTimer(UINT_PTR nIDEvent)
 			setPercentLabel(curcount, allcount);
 			allProgressCtrl.SetPos((int)(((float)curcount / (float)allcount) * 100));
 		}
-
+		//文件检索
 		curProgressCtrl.SetPos(0);
 		setTitle("正在检索...");
 		setAllLabel("正在检索文件...");
@@ -191,25 +182,24 @@ void BuildView::OnTimer(UINT_PTR nIDEvent)
 		setTitle("正在生成version.manifest...");
 		setAllLabel("正在生成version.manifest...");
 		curProgressCtrl.SetPos(0);
-		//addString("文件检索已完成...\r\n开始生成version.manifest...\r\n");
+
 		//生成version.manifest;
 		if (theApp.m_manifest->buildVesion()) {
 			UpdateData(FALSE);
 			setCurLabel("version.manifest生成完成");
-			//addString("生成成功文件保存至" + theApp.m_manifest->getSavePath() + "  文件名:version.manifest\r\n");
-			//addString("文件[1/2]---->已完成生成....\r\n");
-		}
-		else {
-			//addString("发生错误,文件生成失败...\r\n");
+		}else{
+			setCurLabel("发生错误,文件生成失败...");
 			setButtonStaue(BUTTON_CLOSED2, TRUE);
 			setButtonStaue(BUTTON_RETURN2, TRUE);
-			break;
+			MessageBoxA(GetSafeHwnd(), "version.manifest生成失败!", "错误!", MB_OK);
+			return;
 		}
 		curcount += 1;
 		curProgressCtrl.SetPos(100);
 		setPercentLabel(curcount, allcount);
 		allProgressCtrl.SetPos((int)(((float)curcount / (float)allcount) * 100));
 
+		//生成project.manifest;
 		setTitle("正在生成project.manifest...");
 		setAllLabel("正在生成project.manifest");
 		setCurLabel("正在生成project.manifest...");
@@ -221,17 +211,18 @@ void BuildView::OnTimer(UINT_PTR nIDEvent)
 			setTitle("生成完成");
 		}
 		else {
-			curProgressCtrl.SetPos(0);
 			setCurLabel("发生错误,文件生成失败...");
 			setButtonStaue(BUTTON_CLOSED2, TRUE);
 			setButtonStaue(BUTTON_RETURN2, TRUE);
-			break;
+			MessageBoxA(GetSafeHwnd(), "project.manifest生成失败!", "错误!", MB_OK);
+			return;
 		}
 		curcount += 1;
 		curProgressCtrl.SetPos(100);
 		setPercentLabel(curcount, allcount);
 		allProgressCtrl.SetPos((int)(((float)curcount / (float)allcount) * 100));
 
+		//复制文件
 		if (mainView->m_copy.GetCheck() == 1) {
 			curProgressCtrl.SetPos(0);
 			setTitle("正在创建目录...");
@@ -248,14 +239,28 @@ void BuildView::OnTimer(UINT_PTR nIDEvent)
 			setPercentLabel(curcount, allcount);
 			allProgressCtrl.SetPos((int)(((float)curcount / (float)allcount) * 100));
 		}
-
+		//创建压缩文件
+		if (mainView->m_createZip.GetCheck() == 1) {
+			curProgressCtrl.SetPos(0);
+			setTitle("正在创建压缩文件...");
+			setAllLabel("创建压缩文件...");
+			string zipName = theApp.m_manifest->getSavePath() + "/version" + theApp.m_manifest->getLineVersion() + "-" + theApp.m_manifest->getversion() + ".zip";
+			if (!theApp.m_manifest->createZip(curcount, allcount, zipName, theApp.m_manifest->getSavePath())) {
+				MessageBoxA(GetSafeHwnd(), "创建压缩文件失败,请手动压缩", "错误!", MB_OK);
+				return;
+			}
+			curcount += 1;
+			curProgressCtrl.SetPos(100);
+			setPercentLabel(curcount, allcount);
+			allProgressCtrl.SetPos((int)(((float)curcount / (float)allcount) * 100));
+		}
 		curProgressCtrl.SetPos(100);
 		allProgressCtrl.SetPos(100);
 		setPercentLabel(curcount, allcount);
 		allProgressCtrl.SetPos((int)(((float)curcount / (float)allcount) * 100));
-		setTitle("所有操作已成功完成!");
-		setAllLabel("所有操作已成功完成!");
-		setCurLabel("所有操作已成功完成!");
+		setTitle("已完成所有操作!");
+		setAllLabel("已完成所有操作!");
+		setCurLabel("已完成所有操作!");
 		setButtonStaue(BUTTON_CLOSED2, TRUE);
 		setButtonStaue(BUTTON_RETURN2, TRUE);
 	}

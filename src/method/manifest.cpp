@@ -1,4 +1,5 @@
 #include "../../head/manifest.h"
+#include "../../head/tool/zip.h"
 Manifest::Manifest()
 	:
 m_dataPath(""),
@@ -6,13 +7,17 @@ m_savePath(""),
 m_version(""),
 m_inLineVersion(""),
 maxsize(0),
-m_saveitem{ "datapath","savepath","version","inlingversion","remotepath","useformat","usecopy" }
+m_saveitem{ "datapath","savepath","version","inlingversion","remotepath","useformat","usecopy","createzip"}
 {
 	m_makeMd5 = new MD5();
 	m_buff = new char[MAX_BUFLENGTH];
 	m_Json = new CJsonObject();
 }
-
+TCHAR* stringToTchar(string in) {
+	TCHAR file[MAX_PATH];
+	_stprintf_s(file, MAX_PATH, _T("%S"), in.c_str());//%S宽字符
+	return file;
+}
 Manifest::~Manifest()
 {
 	if (m_makeMd5) {
@@ -99,7 +104,46 @@ map<string, string> Manifest::getInfoFromConfig(string configName,string configP
 	}
 	return temp;
 }
+void Manifest::checkFiles(string path, vector<MANIFEST>& files) {
+	intptr_t   hFile = 0;//文件句柄，过会儿用来查找
+	struct _finddata_t fileinfo;//文件信息
+	string p;
+	if ((hFile = _findfirst(p.assign(path).append("/*").c_str(), &fileinfo)) != -1)
+		//如果查找到第一个文件
+	{
+		do
+		{
+			if ((fileinfo.attrib & _A_SUBDIR))//如果是文件夹
+			{
+				if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0) {
+					checkFiles(p.assign(path).append("/").append(fileinfo.name), files);
+				}
+			}
+			else//如果是文件
+			{
+				setCurLabel("发现文件" + p.assign(path).append("/").append(fileinfo.name));
+				MANIFEST file;
+				file.path = p.assign(path).append("/").append(fileinfo.name);
+				file.size = fileinfo.size;
+				if (maxsize < file.size) {
+					maxsize = file.size;//获取最大文件大小
+				}
+				if (strstr(fileinfo.name, ".zip") || strstr(fileinfo.name, ".zIp")
+					|| strstr(fileinfo.name, ".ziP") || strstr(fileinfo.name, ".Zip") ||
+					strstr(fileinfo.name, ".ZIp") || strstr(fileinfo.name, ".ZiP") ||
+					strstr(fileinfo.name, ".ZIP") || strstr(fileinfo.name, ".zIP")) {
+					file.zip = true;
+				}
+				else {
+					file.zip = false;
+				}
+				files.push_back(file);
+			}
+		} while (_findnext(hFile, &fileinfo) == 0); //能寻找到其他文件
 
+		_findclose(hFile);  //结束查找，关闭句柄
+	}
+}
 void Manifest::getFiles(string path, vector<MANIFEST>& files)
 {
 	intptr_t   hFile = 0;//文件句柄，过会儿用来查找
@@ -226,6 +270,38 @@ void Manifest::DeleteDirectory(CString strPath)
 void Manifest::deleteConfig(string configName,string path)
 {
 	WritePrivateProfileStringA(configName.c_str(), NULL, NULL, path.c_str());
+}
+
+bool Manifest::createZip(int cur,int all,string fileName, string sourceDir)
+{
+	setAllLabel("正在检查文件...");
+	vector<MANIFEST> fileList;
+	checkFiles(sourceDir, fileList);
+	CProgressCtrl* a = (CProgressCtrl*)m_curProgress;
+	CProgressCtrl* b = (CProgressCtrl*)m_allProgress;
+	int dataPathLen = (int)sourceDir.length(),percent = 0, vectorSize = (int)fileList.size();
+	float currtnt = 0;
+	ZRESULT isOk;
+	HZIP hz = CreateZip(stringToTchar(fileName), 0);
+	for (vector<MANIFEST>::iterator it = fileList.begin(); it != fileList.end(); it++) {
+		string strPath = "./"+it->path.substr(dataPathLen + 1);
+		isOk = ZipAdd(hz, stringToTchar(strPath), stringToTchar(it->path));
+		if (isOk != ZR_OK) {
+			break;
+		}
+		currtnt += 1;//百分比
+		percent = (int)((currtnt / vectorSize) * 100);
+		char t[8] = {};
+		_itoa(percent, t, 10);
+		string st(t);
+		string stadd = "生成压缩文件 "+ fileName +"==>已完成" + st + "%";
+		a->SetPos(percent);
+		b->SetPos((int)(((float)cur / (float)all) * 100) + (int)(((float)1 / (float)all) * 100 * ((float)currtnt / (float)vectorSize)));
+		setAllLabel(stadd);
+		setCurLabel("[正在压缩] 文件:" + strPath);
+	}
+	CloseZip(hz);
+	return isOk == ZR_OK;
 }
 
 bool Manifest::findFiles()

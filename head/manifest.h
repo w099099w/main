@@ -39,6 +39,7 @@ public:
 	void showChooseFloder(HWND hwndDlg, int EDITCODE);
 	void DeleteDirectory(CString strPath);
 	void deleteConfig(string configName, string path);
+	bool createZip(int cur, int all,string fileName, string sourceDir);
 	string getversion();
 	string getLineVersion();
 	string getRemotePath();
@@ -50,7 +51,7 @@ public:
 	string getRemotePathFromConfig(string configName);
 	string getdataPathFromConfig(string configName);
 	string getSavePathFromConfig(string configName);
-	string m_saveitem[7];
+	string m_saveitem[8];
 private:
 	vector<string> m_creatFloder;
 	unsigned int maxsize;
@@ -67,6 +68,7 @@ private:
 	MD5* m_makeMd5;
 	CJsonObject* m_Json;
 	vector<MANIFEST> m_fileVector;
+	void checkFiles(string path, vector<MANIFEST>& files);
 	void getFiles(string path, vector<MANIFEST>& files);
 	char* m_buff;//用于显示信息,信息转换
 	bool isFloder(string src);

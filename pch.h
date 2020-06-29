@@ -29,6 +29,7 @@ using namespace std;
 #include "head/tool/ThreadPool.h"
 #include "head/tool/cJSON.h"
 #include "head/tool/md5.h"
+#include "head/tool/zip.h"
 #include "head/tool/CJsonObject.hpp"
 #include "head/tool/WriteRedini.h"
 #include "head/manifest.h"

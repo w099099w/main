@@ -89,7 +89,7 @@ string MD5::MD5file(string fileName)
     MD5_CTX md5;
     unsigned char decrypt[16];
     unsigned char buff[1024];
-    unsigned int len, temp;
+    unsigned int len;
     int i;
     if (!(fp = fopen(fileName.c_str(), "rb")))
     {
@@ -109,7 +109,6 @@ string MD5::MD5file(string fileName)
     }
     for (i = 0; i < 32; i++)
         output[i] = output1[i];
-    std::cout << output << "\n";
     fclose(fp);
     return UcharToString(output);
 }
