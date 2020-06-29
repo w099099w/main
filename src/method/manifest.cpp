@@ -281,7 +281,7 @@ bool Manifest::createZip(int cur,int all,string fileName, string sourceDir)
 	CProgressCtrl* b = (CProgressCtrl*)m_allProgress;
 	int dataPathLen = (int)sourceDir.length(),percent = 0, vectorSize = (int)fileList.size();
 	float currtnt = 0;
-	ZRESULT isOk;
+	ZRESULT isOk = ZR_OK;
 	HZIP hz = CreateZip(stringToTchar(fileName), 0);
 	for (vector<MANIFEST>::iterator it = fileList.begin(); it != fileList.end(); it++) {
 		string strPath = "./"+it->path.substr(dataPathLen + 1);
