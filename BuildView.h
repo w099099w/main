@@ -16,6 +16,7 @@ public:
 #endif
 
 protected:
+	HICON m_hIcon;
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
 	DECLARE_MESSAGE_MAP()
@@ -39,5 +40,4 @@ public:
 	CStatic allLabel;
 	CStatic curLabel;
 	CStatic percentLabel;
-	afx_msg void OnBnClickedClosed3();
 };

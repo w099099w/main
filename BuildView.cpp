@@ -96,6 +96,9 @@ void BuildView::setButtonStaue(int buttonID,bool isclick)
 BOOL BuildView::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
+	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	SetIcon(m_hIcon, TRUE);			// 设置大图标
+	SetIcon(m_hIcon, FALSE);		// 设置小图标
 	setButtonStaue(BUTTON_CLOSED2, FALSE);
 	setButtonStaue(BUTTON_RETURN2, FALSE);
 	SetTimer(1, 300, NULL);
