@@ -183,12 +183,14 @@ BOOL SettingView::OnCommand(WPARAM wParam, LPARAM lParam)
 			case BUTTON_BUILD: {
 				if (theApp.m_manifest->checkParams(GetSafeHwnd())) {
 					BuildView dlgBuildView;
+					ShowWindow(SW_HIDE);
 					INT_PTR nResponse =  dlgBuildView.DoModal();
 					switch (nResponse) {
 						case 0: {
 							EndDialog(0);
 						}break;
 					}
+					ShowWindow(SW_SHOW);
 				}	
 			}break;
 			case BUTTON_FINDDATAPATH: {
