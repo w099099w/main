@@ -23,6 +23,18 @@
 #define TIMER_FIND                     4
 #define TIME_RUNTIME                   3
 #define MAX_CONFIGNUM				   12
+#define TASK_NONE                      100
+#define TASK_FOMATFLODER               101
+#define TASK_CHECKFILE                 102
+#define TASK_BUILDMANIFEST             103
+#define TASK_COPYFILE                  104
+#define TASK_CREATEZIP                 105
+#define TASK_SUCCESS                   106
+//结构体
+struct RATIO
+{
+	int cur, all;
+};
 // 添加要在此处预编译的标头
 using namespace std;
 #include "resource.h"

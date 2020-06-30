@@ -117,7 +117,6 @@ BOOL SettingView::OnInitDialog()
 	}
 	ifstream in(cachePath +"/config/config.ini");
 	if (!in.good()) {
-		cout << "创建文件\n";
 		ofstream out;
 		out.open(cachePath + "/config/config.ini",ios::binary);
 		in.close();

@@ -48,26 +48,21 @@ void Manifest::setMFCParam(void* allLabel, void* curLabel, void* percentLabel, v
 	m_curProgress = curProgress;
 }
 bool Manifest::setAllLabel(string s) {
-	std::wstring stemp = StoWs("当前操作:" + s);
-	LPCWSTR result = stemp.c_str();
-	CStatic* a = (CStatic*)m_allLabel;
-	a->SetWindowText(result);
+	string* a = (string*)m_allLabel;
+	*a = s;
 	return true;
 }
 bool Manifest::setPercentLabel(int cur, int all)
 {
-	std::wstring stemp = StoWs("总进度:" + to_string(cur) + "/" + to_string(all));
-	LPCWSTR result = stemp.c_str();
-	CStatic* a = (CStatic*)m_percentLabel;
-	a->SetWindowText(result);
+	RATIO* a = (RATIO*)m_percentLabel;
+	(*a).cur = cur;
+	(*a).all = all;
 	return true;
 }
 bool Manifest::setCurLabel(string s)
 {
-	std::wstring stemp = StoWs(s);
-	LPCWSTR result = stemp.c_str();
-	CStatic* a = (CStatic*)m_curLabel;
-	a->SetWindowText(result);
+	string* a = (string*)m_curLabel;
+	*a = s;
 	return true;
 }
 string Manifest::getversion()
@@ -272,17 +267,28 @@ void Manifest::deleteConfig(string configName,string path)
 	WritePrivateProfileStringA(configName.c_str(), NULL, NULL, path.c_str());
 }
 
+inline bool exists_file(const std::string& name) {
+	struct stat buffer;
+	return (stat(name.c_str(), &buffer) == 0);
+}
+
 bool Manifest::createZip(int cur,int all,string fileName, string sourceDir)
 {
+	if (exists_file(fileName)) {
+		remove(fileName.c_str());
+	}
 	setAllLabel("正在检查文件...");
 	vector<MANIFEST> fileList;
 	checkFiles(sourceDir, fileList);
-	CProgressCtrl* a = (CProgressCtrl*)m_curProgress;
-	CProgressCtrl* b = (CProgressCtrl*)m_allProgress;
+	int* a = (int*)m_curProgress;
+	int* b = (int*)m_allProgress;
 	int dataPathLen = (int)sourceDir.length(),percent = 0, vectorSize = (int)fileList.size();
 	float currtnt = 0;
 	ZRESULT isOk = ZR_OK;
 	HZIP hz = CreateZip(stringToTchar(fileName), 0);
+	if (!hz) {
+		std::cout << "创建失败";
+	}
 	for (vector<MANIFEST>::iterator it = fileList.begin(); it != fileList.end(); it++) {
 		string strPath = "./"+it->path.substr(dataPathLen + 1);
 		isOk = ZipAdd(hz, stringToTchar(strPath), stringToTchar(it->path));
@@ -295,8 +301,8 @@ bool Manifest::createZip(int cur,int all,string fileName, string sourceDir)
 		_itoa(percent, t, 10);
 		string st(t);
 		string stadd = "生成压缩文件 "+ fileName +"==>已完成" + st + "%";
-		a->SetPos(percent);
-		b->SetPos((int)(((float)cur / (float)all) * 100) + (int)(((float)1 / (float)all) * 100 * ((float)currtnt / (float)vectorSize)));
+		*a = percent;
+		*b = (int)(((float)cur / (float)all) * 100) + (int)(((float)1 / (float)all) * 100 * ((float)currtnt / (float)vectorSize));
 		setAllLabel(stadd);
 		setCurLabel("[正在压缩] 文件:" + strPath);
 	}
@@ -355,13 +361,13 @@ bool Manifest::createFloder(int cur, int all) {
 	ThreadPool pool(4);
 	int percent = 0,currtnt = 0;
 	int vectorSize = m_creatFloder.size();
-	CProgressCtrl* a = (CProgressCtrl*)m_curProgress;
-	CProgressCtrl* b = (CProgressCtrl*)m_allProgress;
+	int* a = (int*)m_curProgress;
+	int* b = (int*)m_allProgress;
 	for (vector<string>::iterator it = m_creatFloder.begin(); it != m_creatFloder.end(); it++) {
 		setCurLabel("[正在创建目录] :" + *it);
 		percent = (int)((currtnt / vectorSize) * 100);
-		a->SetPos(percent);
-		b->SetPos((int)(((float)cur / (float)all) * 100) + (int)(((float)1 / (float)all) * 100 * ((float)currtnt / (float)vectorSize)));
+		*a = percent;
+		*b = (int)(((float)cur / (float)all) * 100) + (int)(((float)1 / (float)all) * 100 * ((float)currtnt / (float)vectorSize));
 		auto result = pool.enqueue(creatFLODER, stringToLPCWSTR(*it));
 		if (!result.get()) {
 			return false;
@@ -371,8 +377,8 @@ bool Manifest::createFloder(int cur, int all) {
 }
 
 bool Manifest::copyFiles(int cur, int all,HWND hwnd) {
-	CProgressCtrl* a = (CProgressCtrl*)m_curProgress;
-	CProgressCtrl* b = (CProgressCtrl*)m_allProgress;
+	int* a = (int*)m_curProgress;
+	int* b = (int*)m_allProgress;
 	FILE* pfr = 0;
 	FILE* pfw = 0;
 	int dataPathLen = (int)m_dataPath.length();
@@ -392,8 +398,8 @@ bool Manifest::copyFiles(int cur, int all,HWND hwnd) {
 		_itoa(percent, t, 10);
 		string st(t);
 		string stadd = "正在复制文件...==>已完成" + st + "%";
-		a->SetPos(percent);
-		b->SetPos((int)(((float)cur / (float)all) * 100) + (int)(((float)1 / (float)all) * 100 * ((float)currtnt / (float)vectorSize)));
+		*a = percent;
+		*b = (int)(((float)cur / (float)all) * 100) + (int)(((float)1 / (float)all) * 100 * ((float)currtnt / (float)vectorSize));
 		SetWindowText(hwnd, StoWs(stadd).c_str());
 	}
 	delete[] buf;
@@ -450,8 +456,8 @@ bool Manifest::buildVesion()
 
 bool Manifest::buildProject(int cur,int all,HWND hwnd)
 {
-	CProgressCtrl* a = (CProgressCtrl*)m_curProgress;
-	CProgressCtrl* b = (CProgressCtrl*)m_allProgress;
+	int* a = (int*)m_curProgress;
+	int* b = (int*)m_allProgress;
 	char tem[32] = {};
 	if (m_Json->IsEmpty()) {
 		return false;//没有文件头false
@@ -476,8 +482,8 @@ bool Manifest::buildProject(int cur,int all,HWND hwnd)
 		_itoa(percent, t, 10);
 		string st(t);
 		string stadd = "正在生成project.manifest==>已完成" + st + "%";
-		a->SetPos(percent);
-		b->SetPos((int)(((float)cur / (float)all) * 100)+(int)(((float)1 / (float)all) * 100 * ((float)currtnt / (float)vectorSize)));
+		*a = percent;
+		*b = (int)(((float)cur / (float)all) * 100)+(int)(((float)1 / (float)all) * 100 * ((float)currtnt / (float)vectorSize));
 		setAllLabel(stadd);
 		setCurLabel("[正在计算]  文件:" + strPath +"  md5:"+ md5 + +"  大小:" + tem);
 	}
