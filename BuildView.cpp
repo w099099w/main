@@ -366,8 +366,11 @@ BOOL BuildView::OnInitDialog()
 	setButtonStaue(BUTTON_RETURN2, FALSE);
 	//创建线程
 	H_ThreadAll = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadSetAll, NULL, NULL, NULL);
+	CloseHandle(H_ThreadAll);
+	H_ThreadAll = NULL;
 	H_Threadtask = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Threadtask, NULL, NULL, NULL);
-	
+	CloseHandle(H_Threadtask);
+	H_Threadtask = NULL;
 	SetTimer(1, 300, NULL);
 	allProgressCtrl.SetRange(0, 100);
 	curProgressCtrl.SetRange(0, 100);
@@ -449,14 +452,4 @@ void BuildView::OnSysCommand(UINT nID, LPARAM lParam)
 }
 void BuildView::closeHandle() {
 	endThread = true;
-	if (H_ThreadAll) {
-		TerminateThread(H_ThreadAll, 0);
-		CloseHandle(H_ThreadAll);
-		H_ThreadAll = NULL;
-	}
-	if (H_Threadtask) {
-		TerminateThread(H_Threadtask, 0);
-		CloseHandle(H_Threadtask);
-		H_Threadtask = NULL;
-	}
 }
