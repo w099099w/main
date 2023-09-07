@@ -1,5 +1,30 @@
 #include "../../head/manifest.h"
 #include "../../head/tool/zip.h"
+#include <string>
+
+string urlEncode(string str) {
+	string new_str = "";
+	char c;
+	int ic;
+	const char* chars = str.c_str();
+	char bufHex[10];
+	int len = strlen(chars);
+
+	for (int i = 0; i < len; i++) {
+		c = chars[i];
+		ic = c;
+		if (isalnum(c) || c == '/' || c == '-' || c == '_' || c == '.' || c == '~') new_str += c;
+		else {
+			sprintf(bufHex, "%X", c);
+			if (ic < 16)
+				new_str += "%0";
+			else
+				new_str += "%";
+			new_str += bufHex;
+		}
+	}
+	return new_str;
+}
 Manifest::Manifest()
 	:
 m_dataPath(""),
@@ -448,6 +473,9 @@ bool Manifest::buildVesion()
 	return writeFiles(m_savePath+"/version.manifest",m_Json->ToString());
 }
 
+
+
+
 bool Manifest::buildProject(int cur,int all,HWND hwnd)
 {
 	CProgressCtrl* a = (CProgressCtrl*)m_curProgress;
@@ -469,7 +497,7 @@ bool Manifest::buildProject(int cur,int all,HWND hwnd)
 		CJsonObject temp;
 		temp.Add("size", it->size);
 		temp.Add("md5", md5);
-		(*m_Json)["assets"].Add(strPath, temp);
+		(*m_Json)["assets"].Add(urlEncode(strPath), temp);
 		currtnt += 1;//°Ù·Ö±È
 		percent = (int)((currtnt / vectorSize)*100);
 		char t[8] = {};

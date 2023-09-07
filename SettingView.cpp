@@ -2,7 +2,6 @@
 // SettingView.cpp: 实现文件
 
 #include "SettingView.h"
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
